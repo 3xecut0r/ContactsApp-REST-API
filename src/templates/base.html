@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Document</title>
+</head>
+<body>
+    <nav class="flex justify-between text-2xl space-x-4 my-3">
+        <ul class="flex ml-10">
+            <li><a href="/" class="font-medium px-3 py-2 text-slate-700 rounded-lg hover:bg-slate-100 hover:text-slate-900">Home</a></li>
+        </ul>
+        <ul class="flex gap-3 mr-10">
+            <li><a href="/api/auth/signup" class="font-medium px-3 py-2 text-slate-700 rounded-lg hover:bg-slate-100 hover:text-slate-900">Sign Up</a></li>
+            <li><a href="/api/auth/login" class="font-medium px-3 py-2 text-slate-700 rounded-lg hover:bg-slate-100 hover:text-slate-900">Login</a></li>
+            <li><a href="/api/auth/logout" class="font-medium px-3 py-2 text-slate-700 rounded-lg hover:bg-slate-100 hover:text-slate-900">Logout</a></li>
+        </ul>
+    </nav>
+    <div id="content">
+        {% block content %}
+
+        {% endblock %}
+    </div>
+</body>
+</html>

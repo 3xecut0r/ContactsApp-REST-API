@@ -1,0 +1,2 @@
+2023-07-20 13:03:28 - INFO - User 'qwerty' created.
+2023-07-20 13:04:28 - INFO - User 'qwerty@example.com' logged in successfully.

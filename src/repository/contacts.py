@@ -49,6 +49,7 @@ async def del_contact(contact_id: int, user: User, db: Session):
         return None
     db.delete(contact)
     db.commit()
+    db.refresh(contact)
     return contact
 
 

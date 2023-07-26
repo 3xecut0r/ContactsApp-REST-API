@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from src.database.db import get_db
-from src.database.models import Contact, User
+from src.database.models import User
 from src.schemas import ContactModel, ContactResponse
 from src.repository import contacts as repository_contacts
 from src.services.auth import auth_service

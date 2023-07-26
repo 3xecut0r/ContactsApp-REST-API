@@ -1,7 +1,9 @@
-from fastapi import FastAPI, status, Request
+from pathlib import Path
+
+from fastapi import FastAPI, status, Request, BackgroundTasks
 from fastapi.exceptions import HTTPException
 from fastapi.responses import JSONResponse
-from fastapi.templating import Jinja2Templates
+from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
 # from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 import uvicorn
@@ -9,6 +11,9 @@ import uvicorn
 
 from src.routes import contacts
 from src.routes import auth
+from src.schemas import EmailSchema
+
+
 
 
 app = FastAPI()
@@ -17,12 +22,26 @@ app.include_router(auth.router, prefix="/api")
 app.include_router(contacts.router, prefix="/api")
 
 
-templates = Jinja2Templates(directory="src/templates")
-
-
 @app.get('/')
 def read_root(request: Request):
-    return templates.TemplateResponse("base.html", {"request": request})
+    return {"request": request}
+
+
+@app.post("/send-email")
+async def send_in_background(background_tasks: BackgroundTasks, body: EmailSchema):
+    message = MessageSchema(
+        subject="Fastapi mail module",
+        recipients=[body.email],
+        template_body={"fullname": "Billy Jones"},
+        subtype=MessageType.html
+    )
+
+    fm = FastMail(conf)
+
+    background_tasks.add_task(fm.send_message, message, template_name="example_email.html")
+
+    return {"message": "email has been sent"}
+
 
 
 @app.exception_handler(ValidationError)
@@ -50,4 +69,4 @@ def unexpected_exception_handler(request: Request, exc: Exception):
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)

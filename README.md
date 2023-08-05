@@ -1,14 +1,21 @@
-# web12hm
+# web13hm
 
-<img src="img/picture.png" width=1080 height=720>
+<img src="img/pic_1.png" width=1080 height=720>
+<img src="img/pic_2.png" width=1080 height=720>
 
-<h2>Executing</h2>
+## Executing
 
-- git clone https://github.com/3xecut0r/web12hm.git
+- > git clone https://github.com/3xecut0r/web12hm.git
 
-- cd web12hm
+- > cd web12hm
 
-- poetry shell
+- ### You should create ".env" in root directory with credentials
 
-- "python3 main.py" or "uvicorn main:app --reload"
+- > poetry shell
+
+- ### Run Docker first
+
+- > docker-compose up -d
+
+- > "python3 main.py" or "uvicorn main:app --reload"
 

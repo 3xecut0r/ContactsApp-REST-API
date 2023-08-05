@@ -5,9 +5,9 @@
 
 ## Executing
 
-- > git clone https://github.com/3xecut0r/web12hm.git
+- > git clone https://github.com/3xecut0r/web13hm.git
 
-- > cd web12hm
+- > cd web13hm
 
 - ### You should create ".env" in root directory with credentials
 

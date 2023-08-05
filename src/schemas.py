@@ -53,3 +53,18 @@ class EmailSchema(BaseModel):
 
 class RequestEmail(BaseModel):
     email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    email: str
+    token: str
+    new_password: str
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "email": "user@example.com",
+                "token": "your_reset_token_here",
+                "new_password": "new_secure_password",
+            }
+        }

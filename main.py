@@ -1,33 +1,70 @@
 from pathlib import Path
 
-from fastapi import FastAPI, status, Request, BackgroundTasks
+from fastapi import FastAPI, status, Request, BackgroundTasks, Depends
 from fastapi.exceptions import HTTPException
 from fastapi.responses import JSONResponse
+from fastapi_limiter.depends import RateLimiter
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
-# from fastapi.staticfiles import StaticFiles
+from fastapi_limiter import FastAPILimiter
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import ValidationError
 import uvicorn
+import redis.asyncio as redis
 
-
+from src.conf.config import settings
 from src.routes import contacts
 from src.routes import auth
+from src.routes import users
 from src.schemas import EmailSchema
 
 
+conf = ConnectionConfig(
+    MAIL_USERNAME=settings.mail_username,
+    MAIL_PASSWORD=settings.mail_password,
+    MAIL_FROM=settings.mail_from,
+    MAIL_PORT=settings.mail_port,
+    MAIL_SERVER=settings.mail_server,
+    MAIL_FROM_NAME="REST API",
+    MAIL_STARTTLS=False,
+    MAIL_SSL_TLS=True,
+    USE_CREDENTIALS=True,
+    VALIDATE_CERTS=True,
+    TEMPLATE_FOLDER=Path(__file__).parent / 'src' / 'templates',
+)
 
+origins = [
+    "http://localhost:3000"
+    ]
 
 app = FastAPI()
 app.include_router(auth.router, prefix="/api")
 # app.mount("/static", StaticFiles(directory="static"), name="static")
 app.include_router(contacts.router, prefix="/api")
+app.include_router(users.router, prefix='/api')
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
-@app.get('/')
+@app.on_event("startup")
+async def startup():
+    r = await redis.Redis(host=settings.redis_host, port=settings.redis_port, db=0, encoding="utf-8",
+                          decode_responses=True)
+    await FastAPILimiter.init(r)
+
+
+@app.get('/', description='No more than 10 requests per minute',
+         dependencies=[Depends(RateLimiter(times=10, seconds=60))])
 def read_root(request: Request):
     return {"request": request}
 
 
-@app.post("/send-email")
+@app.post("/send-email", description='No more than 10 requests per minute',
+          dependencies=[Depends(RateLimiter(times=10, seconds=60))])
 async def send_in_background(background_tasks: BackgroundTasks, body: EmailSchema):
     message = MessageSchema(
         subject="Fastapi mail module",
@@ -41,7 +78,6 @@ async def send_in_background(background_tasks: BackgroundTasks, body: EmailSchem
     background_tasks.add_task(fm.send_message, message, template_name="example_email.html")
 
     return {"message": "email has been sent"}
-
 
 
 @app.exception_handler(ValidationError)

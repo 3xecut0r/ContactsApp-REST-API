@@ -1,7 +1,11 @@
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
+from fastapi_limiter.depends import RateLimiter
 from sqlalchemy.orm import Session
+import redis
+from redis_lru import RedisLRU
+import json
 
 from src.database.db import get_db
 from src.database.models import User
@@ -11,6 +15,9 @@ from src.services.auth import auth_service
 
 
 router = APIRouter(prefix='/contacts', tags=["contacts"])
+r = redis.Redis(host='localhost', port=6379, db=0)
+client = redis.StrictRedis()
+cache = RedisLRU(client)
 
 
 @router.post("/create", response_model=ContactResponse)
@@ -20,7 +27,9 @@ async def create_contact(contact: ContactModel,
     return await repository_contacts.create_contact(contact, current_user, db)
 
 
-@router.get("/all")
+@cache
+@router.get("/all", description='No more than 10 requests per minute',
+            dependencies=[Depends(RateLimiter(times=10, seconds=60))])
 async def get_all(limit: int = 10, offset: int = 0,
                   db: Session = Depends(get_db),
                   current_user: User = Depends(auth_service.get_current_user)):
@@ -28,16 +37,23 @@ async def get_all(limit: int = 10, offset: int = 0,
     return contacts[offset:][:limit]
 
 
-@router.get("/read/{contact_id}")
+@router.get("/read/{contact_id}", description='No more than 10 requests per minute',
+            dependencies=[Depends(RateLimiter(times=10, seconds=60))])
 async def get_by_id(contact_id, db: Session = Depends(get_db),
                     current_user: User = Depends(auth_service.get_current_user)):
-    contact = await repository_contacts.get_contact(contact_id, current_user, db)
+    contact = r.get(str(contact_id))
     if contact is None:
-        return "Not found"
-    return contact
+        contact = await repository_contacts.get_contact(contact_id, current_user, db)
+        r.set(str(contact_id), json.dumps(contact))
+        r.expire(str(contact), 3600)
+        if contact is None:
+            return 'Not found'
+        return contact
+    return json.loads(contact)
 
 
-@router.put("/update/{contact_id}")
+@router.put("/update/{contact_id}", description='No more than 10 requests per minute',
+            dependencies=[Depends(RateLimiter(times=10, seconds=60))])
 async def update_contact(contact_id, first_name: str = None, last_name: str = None, email: str = None,
                          phone: str = None, db: Session = Depends(get_db),
                          current_user: User = Depends(auth_service.get_current_user)):
@@ -47,7 +63,8 @@ async def update_contact(contact_id, first_name: str = None, last_name: str = No
     return {"message": "Contact updated successfully", "contact": updated}
 
 
-@router.delete("/delete/{contact_id}")
+@router.delete("/delete/{contact_id}", description='No more than 10 requests per minute',
+               dependencies=[Depends(RateLimiter(times=10, seconds=60))])
 async def delete_by_id(contact_id,
                        current_user: User = Depends(auth_service.get_current_user),
                        db: Session = Depends(get_db)):
@@ -57,7 +74,9 @@ async def delete_by_id(contact_id,
     return {"message": "Contact deleted successfully", "contact": contact}
 
 
-@router.get("/search")
+@cache
+@router.get("/search", description='No more than 10 requests per minute',
+            dependencies=[Depends(RateLimiter(times=10, seconds=60))])
 async def search_contact(first_name: Optional[str] = Query(default=None),
                          last_name: Optional[str] = Query(default=None),
                          email: Optional[str] = Query(default=None),
@@ -69,7 +88,9 @@ async def search_contact(first_name: Optional[str] = Query(default=None),
     return contacts
 
 
-@router.get("/upcoming_birthdays")
+@cache
+@router.get("/upcoming_birthdays", description='No more than 10 requests per minute',
+            dependencies=[Depends(RateLimiter(times=10, seconds=60))])
 async def upcoming_birthdays(current_user: User = Depends(auth_service.get_current_user),
                              db: Session = Depends(get_db)):
     birthdays = await repository_contacts.birthdays(current_user, db)

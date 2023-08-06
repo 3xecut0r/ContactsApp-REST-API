@@ -9,6 +9,23 @@ Base = declarative_base()
 
 
 class Contact(Base):
+    """
+    SQLAlchemy model representing a contact.
+
+    Attributes:
+        id (int): Primary key of the contact.
+        first_name (str): First name of the contact.
+        last_name (str): Last name of the contact.
+        email (str): Email address of the contact (unique).
+        phone (str): Phone number of the contact (unique).
+        birthday (datetime): Birthday of the contact.
+        created_at (datetime): Creation timestamp of the contact.
+        updated_at (datetime): Last update timestamp of the contact.
+        user_id (int): Foreign key referencing the user this contact belongs to.
+
+    Relationships:
+        user (User): Relationship to the User model.
+    """
     __tablename__ = "contacts"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
@@ -24,6 +41,22 @@ class Contact(Base):
 
 
 class User(Base):
+    """
+    SQLAlchemy model representing a user.
+
+    Attributes:
+        id (int): Primary key of the user.
+        username (str): Username of the user (up to 50 characters).
+        email (str): Email address of the user (unique, up to 250 characters).
+        password (str): Hashed password of the user.
+        created_at (datetime): Creation timestamp of the user.
+        avatar (str, optional): URL to the user's avatar image.
+        refresh_token (str, optional): Refresh token for authentication.
+        confirmed (bool): Whether the user's email is confirmed.
+
+    Relationships:
+        contacts (List[Contact]): List of contacts associated with the user.
+    """
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True)
@@ -36,4 +69,5 @@ class User(Base):
     confirmed = Column(Boolean, default=False)
 
 
+# Create all defined tables in the database
 Base.metadata.create_all(bind=engine)

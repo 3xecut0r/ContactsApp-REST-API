@@ -36,6 +36,7 @@ origins = [
     "http://localhost:3000"
     ]
 
+# Initialize FastAPI app
 app = FastAPI()
 app.include_router(auth.router, prefix="/api")
 # app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -50,22 +51,46 @@ app.add_middleware(
 )
 
 
+# Connect to Redis and initialize FastAPILimiter
 @app.on_event("startup")
 async def startup():
+    """
+    Executed on app startup to connect to Redis and initialize FastAPILimiter.
+    """
     r = await redis.Redis(host=settings.redis_host, port=settings.redis_port, db=0, encoding="utf-8",
                           decode_responses=True)
     await FastAPILimiter.init(r)
 
 
+# Define root endpoint
 @app.get('/', description='No more than 10 requests per minute',
          dependencies=[Depends(RateLimiter(times=10, seconds=60))])
 def read_root(request: Request):
+    """
+    Handler for the root path.
+
+    :param request: The HTTP request.
+    :type request: Request
+    :return: A dictionary containing the request information.
+    :rtype: dict
+    """
     return {"request": request}
 
 
+# Define email sending endpoint
 @app.post("/send-email", description='No more than 10 requests per minute',
           dependencies=[Depends(RateLimiter(times=10, seconds=60))])
 async def send_in_background(background_tasks: BackgroundTasks, body: EmailSchema):
+    """
+    Sends an email in the background.
+
+    :param background_tasks: Background tasks to run.
+    :type background_tasks: BackgroundTasks
+    :param body: The email data.
+    :type body: EmailSchema
+    :return: A message indicating the email has been sent.
+    :rtype: dict
+    """
     message = MessageSchema(
         subject="Fastapi mail module",
         recipients=[body.email],
@@ -80,8 +105,13 @@ async def send_in_background(background_tasks: BackgroundTasks, body: EmailSchem
     return {"message": "email has been sent"}
 
 
+# Exception handlers
+
 @app.exception_handler(ValidationError)
-def validation_error_handler(request: Request, exc: ValidationError):
+def validation_error_handler():
+    """
+    Handles validation errors. Returns a JSON response with an error message for invalid input data.
+    """
     return JSONResponse(
         status_code=status.HTTP_400_BAD_REQUEST,
         content={"message": "Invalid input data"}
@@ -89,7 +119,10 @@ def validation_error_handler(request: Request, exc: ValidationError):
 
 
 @app.exception_handler(HTTPException)
-def http_exception_handler(request: Request, exc: HTTPException):
+def http_exception_handler(exc: HTTPException):
+    """
+    Handles HTTP exceptions. Returns a JSON response with the exception detail and status code.
+    """
     return JSONResponse(
         status_code=exc.status_code,
         content={"message": exc.detail},
@@ -97,7 +130,10 @@ def http_exception_handler(request: Request, exc: HTTPException):
 
 
 @app.exception_handler(Exception)
-def unexpected_exception_handler(request: Request, exc: Exception):
+def unexpected_exception_handler():
+    """
+    Handles unexpected exceptions. Returns a JSON response with a generic error message and status code.
+    """
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={"message": "An unexpected error occurred"},

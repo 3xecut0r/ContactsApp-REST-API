@@ -5,7 +5,7 @@
 
 ## Executing
 
-- > git clone https://github.com/3xecut0r/web13hm.git
+- > git clone https://github.com/3xecut0r/ContactsApp-REST-API.git
 
 - > cd web13hm
 

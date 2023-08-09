@@ -1,4 +1,4 @@
-# web13hm
+# REST API
 
 <img src="img/pic_1.png" width=1080 height=720>
 <img src="img/pic_2.png" width=1080 height=720>

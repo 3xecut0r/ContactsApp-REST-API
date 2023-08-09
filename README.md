@@ -7,7 +7,7 @@
 
 - > git clone https://github.com/3xecut0r/ContactsApp-REST-API.git
 
-- > cd web13hm
+- > cd ContactsApp-REST-API
 
 - ### You should create ".env" in root directory with credentials
 

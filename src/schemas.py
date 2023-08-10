@@ -132,7 +132,7 @@ class ResetPasswordRequest(BaseModel):
     new_password: str
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "email": "user@example.com",
                 "token": "your_reset_token_here",

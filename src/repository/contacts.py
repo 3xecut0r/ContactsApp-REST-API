@@ -50,7 +50,7 @@ async def create_contact(body: ContactModel, user: User, db: Session):
     Returns:
         Contact: The created contact.
     """
-    contact = Contact(**body.dict(), user_id=user.id)
+    contact = Contact(**body.model_dump(), user_id=user.id)
     db.add(contact)
     db.commit()
     db.refresh(contact)

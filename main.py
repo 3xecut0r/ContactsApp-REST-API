@@ -7,7 +7,7 @@ from fastapi_limiter.depends import RateLimiter
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
 from fastapi_limiter import FastAPILimiter
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import ValidationError
+from pydantic import ValidationError, BaseModel
 import uvicorn
 import redis.asyncio as redis
 
@@ -51,6 +51,12 @@ app.add_middleware(
 )
 
 
+class HealthCheck(BaseModel):
+    """Response model to validate and return when performing a health check."""
+
+    status: str = "OK"
+
+
 # Connect to Redis and initialize FastAPILimiter
 @app.on_event("startup")
 async def startup():
@@ -63,18 +69,25 @@ async def startup():
 
 
 # Define root endpoint
-@app.get('/', description='No more than 10 requests per minute',
-         dependencies=[Depends(RateLimiter(times=10, seconds=60))])
-def read_root(request: Request):
+@app.get(
+    "/health",
+    tags=["healthcheck"],
+    summary="Perform a Health Check",
+    response_description="Return HTTP Status Code 200 (OK)",
+    status_code=status.HTTP_200_OK,
+    response_model=HealthCheck,
+)
+def get_health() -> HealthCheck:
     """
-    Handler for the root path.
-
-    :param request: The HTTP request.
-    :type request: Request
-    :return: A dictionary containing the request information.
-    :rtype: dict
+    ## Perform a Health Check
+    Endpoint to perform a healthcheck on. This endpoint can primarily be used Docker
+    to ensure a robust container orchestration and management is in place. Other
+    services which rely on proper functioning of the API service will not deploy if this
+    endpoint returns any other HTTP status code except 200 (OK).
+    Returns:
+        HealthCheck: Returns a JSON response with the health status
     """
-    return {"request": request}
+    return HealthCheck(status="OK")
 
 
 # Define email sending endpoint
@@ -108,7 +121,7 @@ async def send_in_background(background_tasks: BackgroundTasks, body: EmailSchem
 # Exception handlers
 
 @app.exception_handler(ValidationError)
-def validation_error_handler():
+def validation_error_handler(request: Request, exc: ValidationError):
     """
     Handles validation errors. Returns a JSON response with an error message for invalid input data.
     """
@@ -119,7 +132,7 @@ def validation_error_handler():
 
 
 @app.exception_handler(HTTPException)
-def http_exception_handler(exc: HTTPException):
+def http_exception_handler(request: Request, exc: HTTPException):
     """
     Handles HTTP exceptions. Returns a JSON response with the exception detail and status code.
     """
@@ -130,7 +143,7 @@ def http_exception_handler(exc: HTTPException):
 
 
 @app.exception_handler(Exception)
-def unexpected_exception_handler():
+def unexpected_exception_handler(request: Request, exc: Exception):
     """
     Handles unexpected exceptions. Returns a JSON response with a generic error message and status code.
     """

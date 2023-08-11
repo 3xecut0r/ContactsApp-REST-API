@@ -33,7 +33,7 @@ class ContactResponse(ContactModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
+    class ConfigDict:
         from_attributes = True
 
 
@@ -68,7 +68,7 @@ class UserDb(BaseModel):
     created_at: datetime
     avatar: str
 
-    class Config:
+    class ConfigDict:
         from_attributes = True
 
 
@@ -131,7 +131,7 @@ class ResetPasswordRequest(BaseModel):
     token: str
     new_password: str
 
-    class Config:
+    class ConfigDict:
         json_schema_extra = {
             "example": {
                 "email": "user@example.com",

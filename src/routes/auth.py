@@ -26,9 +26,7 @@ router = APIRouter(
 security = HTTPBearer()
 
 
-@router.post('/signup', response_model=UserResponse, status_code=status.HTTP_201_CREATED,
-             description='No more than 10 requests per minute',
-             dependencies=[Depends(RateLimiter(times=10, seconds=60))])
+@router.post('/signup', response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def signup(body: UserModel, background_tasks: BackgroundTasks, request: Request, db: Session = Depends(get_db)):
     """
     Endpoint for user registration.
@@ -52,8 +50,7 @@ async def signup(body: UserModel, background_tasks: BackgroundTasks, request: Re
     return {'user': new_user, 'detail': 'User successfully created. Check your email for confirmation.'}
 
 
-@router.post("/login", response_model=TokenModel, description='No more than 10 requests per minute',
-             dependencies=[Depends(RateLimiter(times=10, seconds=60))])
+@router.post("/login", response_model=TokenModel)
 async def login(
     body: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
 ):
@@ -122,8 +119,7 @@ async def refresh_token(credentials: HTTPAuthorizationCredentials = Security(sec
     }
 
 
-@router.get('/confirmed_email/{token}', description='No more than 10 requests per minute',
-            dependencies=[Depends(RateLimiter(times=10, seconds=60))])
+@router.get('/confirmed_email/{token}')
 async def confirmed_email(token: str, db: Session = Depends(get_db)):
     """
     Endpoint for confirming a user's email.
@@ -145,8 +141,7 @@ async def confirmed_email(token: str, db: Session = Depends(get_db)):
     return {"message": "Email confirmed"}
 
 
-@router.post('/request_email', description='No more than 10 requests per minute',
-             dependencies=[Depends(RateLimiter(times=10, seconds=60))])
+@router.post('/request_email')
 async def request_email(body: RequestEmail, background_tasks: BackgroundTasks, request: Request,
                         db: Session = Depends(get_db)):
     """

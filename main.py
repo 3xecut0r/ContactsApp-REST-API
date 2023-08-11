@@ -32,9 +32,6 @@ conf = ConnectionConfig(
     TEMPLATE_FOLDER=Path(__file__).parent / 'src' / 'templates',
 )
 
-origins = [
-    "http://localhost:3000"
-    ]
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -42,6 +39,22 @@ app.include_router(auth.router, prefix="/api")
 # app.mount("/static", StaticFiles(directory="static"), name="static")
 app.include_router(contacts.router, prefix="/api")
 app.include_router(users.router, prefix='/api')
+
+
+# Connect to Redis and initialize FastAPILimiter
+@app.on_event("startup")
+async def startup():
+    """
+    Executed on app startup to connect to Redis and initialize FastAPILimiter.
+    """
+    r = await redis.Redis(host=settings.redis_host, port=settings.redis_port, db=0, encoding="utf-8",
+                          decode_responses=True)
+    await FastAPILimiter.init(r)
+
+
+origins = [
+    "http://localhost:3000"
+    ]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -55,17 +68,6 @@ class HealthCheck(BaseModel):
     """Response model to validate and return when performing a health check."""
 
     status: str = "OK"
-
-
-# Connect to Redis and initialize FastAPILimiter
-@app.on_event("startup")
-async def startup():
-    """
-    Executed on app startup to connect to Redis and initialize FastAPILimiter.
-    """
-    r = await redis.Redis(host=settings.redis_host, port=settings.redis_port, db=0, encoding="utf-8",
-                          decode_responses=True)
-    await FastAPILimiter.init(r)
 
 
 # Define root endpoint

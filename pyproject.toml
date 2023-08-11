@@ -20,10 +20,18 @@ fastapi-mail = "^1.4.1"
 redis-lru = "^0.1.2"
 fastapi-limiter = "^0.1.5"
 cloudinary = "^1.33.0"
+pytest = "^7.4.0"
 
 
 [tool.poetry.group.dev.dependencies]
 sphinx = "^7.1.2"
+
+
+[tool.poetry.group.test.dependencies]
+httpx = "^0.24.1"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
 
 [build-system]
 requires = ["poetry-core"]

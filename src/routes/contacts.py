@@ -38,7 +38,6 @@ async def create_contact(contact: ContactModel,
     return await repository_contacts.create_contact(contact, current_user, db)
 
 
-@cache
 @router.get("/all", description='No more than 10 requests per minute',
             dependencies=[Depends(RateLimiter(times=10, seconds=60))])
 async def get_all(limit: int = 10, offset: int = 0, db: Session = Depends(get_db),

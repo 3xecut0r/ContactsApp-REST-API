@@ -11,7 +11,6 @@ from src.repository.users import (
     create_user,
     confirmed_email,
     update_token,
-    update_user_password,
     update_avatar)
 
 
@@ -61,10 +60,3 @@ class TestUser(unittest.IsolatedAsyncioTestCase):
         self.session.query().filter().first.return_value = self.user
         result = await update_avatar(email=self.user.email, url=avatar, db=self.session)
         self.assertEquals(result.avatar, avatar)
-
-
-
-
-
-
-

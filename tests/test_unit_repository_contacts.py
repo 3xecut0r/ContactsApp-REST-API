@@ -12,7 +12,6 @@ from src.repository.contacts import (
     create_contact,
     del_contact,
     put_contact,
-    search,
     birthdays,
 )
 
@@ -102,30 +101,6 @@ class TestContact(unittest.IsolatedAsyncioTestCase):
                                    last_name=body.last_name, email=body.email, phone=body.phone,
                                    user=self.user, db=self.session)
         self.assertIsNone(result)
-
-    # async def test_search(self):
-    #     body = ContactModel(
-    #         first_name=self.contact_test.first_name,
-    #         last_name=self.contact_test.last_name,
-    #         email=self.contact_test.email,
-    #         phone=self.contact_test.phone,
-    #         birthday=self.contact_test.birthday,
-    #     )
-    #     self.session.query().filter().first.return_value = [self.contact_test]
-    #     print(f"self.contact_test: {self.contact_test}")
-    #     result = await search(first_name=self.contact_test.first_name,
-    #                           last_name=self.contact_test.last_name,
-    #                           email=self.contact_test.email,
-    #                           user=self.user,
-    #                           db=self.session)
-    #     print(f"result: {result}")
-    #     self.assertIsNotNone(result)
-
-    #     self.assertEqual(result.first_name, body.first_name)
-    #     self.assertEqual(result.last_name, body.last_name)
-    #     self.assertEqual(result.email, body.email)
-    #     self.assertEqual(result.phone, body.phone)
-    #     self.assertEqual(result.birthday, body.birthday)
 
     async def test_birthday(self):
         today = date.today()
